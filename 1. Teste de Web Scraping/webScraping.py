@@ -7,9 +7,20 @@ import os
 import time
 from urllib.parse import urljoin  
 import re
+import tkinter as tk
+from tkinter import filedialog
 
 def baixar_anexos():
     try:
+        # Escolher diretório de download usando o explorador de arquivos
+        root = tk.Tk()
+        root.withdraw()  # Oculta a janela principal do Tkinter
+        diretorio = filedialog.askdirectory(title="Selecione o diretório para salvar os arquivos")
+        if not diretorio:
+            raise Exception("Nenhum diretório selecionado. Operação cancelada.")
+        
+        print(f"Arquivos serão baixados em: {diretorio}")
+
         #acesso ao site
         url_ans = "https://www.gov.br/ans/pt-br/acesso-a-informacao/participacao-da-sociedade/atualizacao-do-rol-de-procedimentos"
         
@@ -31,7 +42,7 @@ def baixar_anexos():
         soup = BeautifulSoup(resposta.text, 'html.parser')
         links_pdf = []
         
-        padroes_anexo = ['anexo i', 'anexo ii', 'anexo1', 'anexo2', 'anexo I', 'anexo II', 'Anexo I', 'Anexo II', "Anexo I.pdf", "Anexo II.pdf", 'Anexo_I', 'Anexo_II']
+        padroes_anexo = ['anexo i', 'anexo ii']
         
         for link in soup.find_all('a', href=True):
             href = link['href'].lower()
@@ -54,7 +65,7 @@ def baixar_anexos():
         arquivos_baixados = []
         
         for link in links_pdf:
-            nome_arquivo = link.split('/')[-1]
+            nome_arquivo = os.path.join(diretorio, link.split('/')[-1])
             print(f'Baixando {nome_arquivo}')
             
             #tentativas de download caso falhe
@@ -75,22 +86,20 @@ def baixar_anexos():
 
         #compactar em zip após baixar todos os arquivos
         if arquivos_baixados:
-            nome_zip = "Anexos_ANS.zip"
+            nome_zip = os.path.join(diretorio, "Anexos_ANS.zip")
             print(f"Compactando arquivos em {nome_zip}...")
             
             with zipfile.ZipFile(nome_zip, 'w') as zipf:
                 for arquivo in arquivos_baixados:
-                    zipf.write(arquivo)
+                    zipf.write(os.path.join(diretorio, arquivo), arquivo)
             #limpar temporarios
             for arquivo in arquivos_baixados:
-                os.remove(arquivo)
+                os.remove(os.path.join(diretorio, arquivo))
             print("Concluído! Arquivo ZIP criado com sucesso.")
         else:
             print("Nenhum arquivo foi baixado.")
     except Exception as e:
         print(f"ERRO: {e}")
         print("Verifique a conexão ou o site da ANS.")
-
-
 
 baixar_anexos()
