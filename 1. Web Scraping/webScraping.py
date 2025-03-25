@@ -84,17 +84,18 @@ def baixar_anexos():
                         print(f"Falha ao baixar {nome_arquivo}: {e}")
                     time.sleep(2) #espera antes de tentar novamente
 
-        #compactar em zip após baixar todos os arquivos
+        # compactar em zip após baixar todos os arquivos
         if arquivos_baixados:
             nome_zip = os.path.join(diretorio, "Anexos_ANS.zip")
             print(f"Compactando arquivos em {nome_zip}...")
-            
+
             with zipfile.ZipFile(nome_zip, 'w') as zipf:
                 for arquivo in arquivos_baixados:
-                    zipf.write(os.path.join(diretorio, arquivo), arquivo)
-            #limpar temporarios
+                    if arquivo.endswith('.pdf'):  # Certifica-se de incluir apenas PDFs
+                        zipf.write(arquivo, os.path.basename(arquivo))
+            # limpar temporários
             for arquivo in arquivos_baixados:
-                os.remove(os.path.join(diretorio, arquivo))
+                os.remove(arquivo)
             print("Concluído! Arquivo ZIP criado com sucesso.")
         else:
             print("Nenhum arquivo foi baixado.")
