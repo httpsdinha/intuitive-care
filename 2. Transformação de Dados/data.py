@@ -1,126 +1,119 @@
-#transformação de dados
-
 import zipfile
 import os
-from urllib.parse import urljoin  
-import re
+import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
-import pandas as pd
-from pdfminer.high_level import extract_text
+import pdfplumber
 
-
+#extrai a tabela do pdf
 def extrair_tabela_pdf(pdf_path):
     print("Processando PDF")
-    try:
-        texto = extract_text(pdf_path)
-        linhas = [linha.strip() for linha in texto.split('\n') if linha.strip()]
-        
-        dados = []
-        for linha in linhas: 
-            if re.match(r'^\d{4}\s+', linha):
-                partes = re.split(r'\s{2,}', linha)
-                dados.append(partes[:5])
-                
-        if not dados: 
-            raise Exception("Nenhuma tabela encontrada")
-        
-        colunas = ['Código', 'Descrição', 'Tipo', 'Porte', 'Data de Inclusão']
-        return pd.DataFrame(dados, columns=colunas)
+    todas_linhas = []
+    cabecalho = None
     
-    except Exception as e:
-        print(f"Erro ao processar dados do PDF: {e}")
-        return None
-
-def substituir_abreviacoes(df):
-    print("Substituindo abreviações")
-    df["OD/AMB"] = df ["OD/AMB"].replace({
-        "OD": "Odontologia",
-        "AMB": "Ambulatorial"
-    })
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if "PROCEDIMENTO" in text and "VIGÊNCIA" in text:
+                for tabela in page.extract_tables():
+                    if len(tabela) > 1:
+                        if "PROCEDIMENTO" in str(tabela[0][0]):
+                            cabecalho = tabela[0]
+                            for linha in tabela[1:]:
+                                if linha[0] and linha[0].strip():
+                                    todas_linhas.append(linha)
+    if not cabecalho:
+        raise ValueError("Cabeçalho da tabela não encontrado no PDF")
+    
+    #cria o dataframe com os dados 
+    df = pd.DataFrame(todas_linhas, columns=cabecalho)
+    
+    colunas_relevantes = [
+        'PROCEDIMENTO', 'RN', 'VIGÊNCIA', 'OD', 'AMB', 'HCO', 'HSO', 
+        'REF', 'PAC', 'DUT', 'SUBGRUPO', 'GRUPO', 'CAPÍTULO'
+    ]
+    df = df[[col for col in colunas_relevantes if col in df.columns]]
+    
     return df
 
+#substitui as abreviações
+def substituir_abreviacoes(df):
+    print("Substituindo abreviações")
+    
+    df = df.replace({
+        'OD': 'Odontológica',
+        'AMB': 'Ambulatorial',
+        'HCO': 'Hospitalar Com Obstetrícia',
+        'HSO': 'Hospitalar Sem Obstetrícia',
+        'REF': 'Referência',
+        'PAC': 'Procedimento de Alta Complexidade',
+        'DUT': 'Diretriz de Utilização'
+    })
+    
+    return df
+
+#salva e compacta o arquivo
 def salvar_e_compactar(df, nome_arquivo, diretorio):
     try:
         csv_path = os.path.join(diretorio, f"{nome_arquivo}.csv")
         zip_path = os.path.join(diretorio, f"{nome_arquivo}.zip")
         
-        print("Salvando {csv_path}")
+        print(f"Salvando {csv_path}")
         df.to_csv(csv_path, index=False, encoding='utf-8')
         
-        print("Compactando {zip_path}")
+        print(f"Compactando {zip_path}")
         with zipfile.ZipFile(zip_path, 'w') as zipf:
             zipf.write(csv_path, os.path.basename(csv_path))
         os.remove(csv_path)
         print("Arquivo salvo e compactado com sucesso")
-        return True
+        return zip_path
     except Exception as e:
-        print("Erro ao salvar e compactar arquivo: {e}")
-        return False
-
-def extrair_pdfs_do_zip(zip_path, diretorio_temp):
-    print("Extraindo arquivos do ZIP")
+        print(f"Erro ao salvar e compactar arquivo: {e}")
+        return None
+    
+def processar_anexo1(pdf_path, nome_usuario, diretorio_saida = 'output' ):
     try:
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(diretorio_temp)
-        pdf_files = [os.path.join(diretorio_temp, f) for f in os.listdir(diretorio_temp) if f.endswith('.pdf')]
-        if not pdf_files:
-            raise Exception("Nenhum arquivo PDF encontrado no ZIP")
-        return pdf_files
+        if not os.path.exists(diretorio_saida):
+            os.makedirs(diretorio_saida)
+            
+        df = extrair_tabela_pdf(pdf_path)
+        df = substituir_abreviacoes(df)
+        
+        nome_arquivo = f"Teste_{nome_usuario}"
+        zip_path = salvar_e_compactar(df, nome_arquivo, diretorio_saida)
+        
+        if zip_path:
+            print(f"Arquivo salvo e compactado em: {zip_path}")
+        else:
+            print("Erro ao salvar e compactar o arquivo")
+        
+        return zip_path
     except Exception as e:
-        print(f"Erro ao extrair arquivos do ZIP: {e}")
-        return []
+        print(f"Erro ao processar Anexo I: {e}")
+        return None
 
 def main():
-    try:
-        root = tk.Tk()
-        root.withdraw()
-        diretorio = filedialog.askdirectory(title="Selecione a pasta para salvar os arquivos")
-        if not diretorio:
-            raise Exception("Nenhum diretório selecionado")
-        
-        zip_path = filedialog.askopenfilename(
-            title="Selecione o arquivo ZIP contendo os PDFs",
-            filetypes=[("ZIP files", "*.zip")]
-        )
-        if not zip_path:
-            raise Exception("Nenhum arquivo ZIP selecionado")
-        
-        diretorio_temp = os.path.join(diretorio, "temp_extracao")
-        os.makedirs(diretorio_temp, exist_ok=True)
-        
-        pdf_files = extrair_pdfs_do_zip(zip_path, diretorio_temp)
+    root = tk.Tk()
+    root.withdraw()
+    print("Selecione o arquivo ZIP contendo o PDF.")
+    zip_path = filedialog.askopenfilename(
+        title="Selecione o arquivo ZIP",
+        filetypes=[("Arquivos ZIP", "*.zip")]
+    )
+    
+    if not zip_path:
+        print("Nenhum arquivo selecionado. Encerrando o programa.")
+        exit(1)
+    
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        pdf_files = [f for f in zip_ref.namelist() if f.endswith('.pdf')]
         if not pdf_files:
-            raise Exception("Erro ao extrair PDFs do ZIP")
-        
-        dfs = []
-        for pdf_path in pdf_files:
-            df = extrair_tabela_pdf(pdf_path)
-            if df is not None:
-                dfs.append(df)
-        
-        if not dfs:
-            raise Exception("Nenhuma tabela válida foi extraída dos PDFs")
-        
-        df_final = pd.concat(dfs, ignore_index=True)
-        df_final = substituir_abreviacoes(df_final)
-        
-        nome_arquivo = input("Digite o seu Nome: ").strip()
-        if not nome_arquivo:
-            nome_arquivo = "Tabela_ANS"
-        else:
-            nome_arquivo = f"Teste_{nome_arquivo}"
-        
-        if not salvar_e_compactar(df_final, nome_arquivo, diretorio):
-            raise Exception("Erro ao salvar e compactar arquivo")
-        
-        # Limpeza do diretório temporário
-        for f in os.listdir(diretorio_temp):
-            os.remove(os.path.join(diretorio_temp, f))
-        os.rmdir(diretorio_temp)
-        
-    except Exception as e:
-        print(f"Erro: {e}")
-        print("Verifique o arquivo ZIP, os PDFs e a pasta de destino")
+            print("Nenhum arquivo PDF encontrado no ZIP.")
+            exit(1)
+        zip_ref.extract(pdf_files[0])
+        pdf_path = pdf_files[0]
+    
+    nome_usuario = input("Digite o nome do usuário: ")
+    processar_anexo1(pdf_path, nome_usuario)
 
 main()
