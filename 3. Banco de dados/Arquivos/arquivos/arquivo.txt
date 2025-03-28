@@ -1,0 +1,5 @@
+#ultimos dois anos
+https://dadosabertos.ans.gov.br/FTP/PDA/operadoras_de_plano_de_saude_ativas/
+
+#.csv
+https://dadosabertos.ans.gov.br/FTP/PDA/demonstracoes_contabeis/

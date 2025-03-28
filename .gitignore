@@ -22,6 +22,7 @@ build/
 # PDF files
 *.pdf
 # CSV files
+*.csv#
 *.csv
 
 # ZIP files
@@ -35,4 +36,3 @@ build/
 # Python files
 __pycache__/
 *.py[cod]
-*.csv
