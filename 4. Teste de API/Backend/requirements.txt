@@ -2,3 +2,4 @@ fastapi==0.95.2
 uvicorn==0.22.0
 pandas==2.0.1
 fuzzywuzzy==0.18.0
+python-Levenshtein==0.12.2

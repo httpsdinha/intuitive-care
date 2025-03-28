@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     
 settings = Settings()
 
-# teste
+# teste python -c "from app.core.config import settings; print(settings.APP_NAME)"
 if __name__ == "__main__":
     print("Configurações carregadas:")
     print(f"Nome do App: {settings.APP_NAME}")
