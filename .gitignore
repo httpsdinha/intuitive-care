@@ -21,6 +21,8 @@ build/
 
 # PDF files
 *.pdf
+# CSV files
+*.csv
 
 # ZIP files
 *.zip
