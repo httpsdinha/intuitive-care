@@ -24,11 +24,16 @@ class OperadoraRepository:
             score = fuzz.token_set_ratio(termo.lower(), " ".join(row.values).lower())
             if score > 50:
                 resultados.append({
-                "Registro_ANS": row["Registro_ANS"],  
-                "Nome_Fantasia": row["Nome_Fantasia"], 
-                "Razao_Social": row["Razao_Social"],  # Corrected column name
-                "score": score
-            })
+                    "Registro_ANS": row["Registro_ANS"],
+                    "Nome_Fantasia": row["Nome_Fantasia"],
+                    "Razao_Social": row["Razao_Social"],
+                    "Modalidade": row["Modalidade"],  
+                    "Logradouro": row["Logradouro"],  
+                    "Telefone": row["Telefone"],     
+                    "Cidade": row["Cidade"],          
+                    "UF": row["UF"],                 
+                    "score": score
+                })
         return sorted(resultados, key=lambda x: x["score"], reverse=True)[:limite]
 
 # teste python app/modules/operadoras/repository.py

@@ -1,8 +1,8 @@
 <template>
     <div class="header-container">
-        <img src="../assets/logo.png" class="logo" />
+        <img src="./assets/logo.png" class="logo" />
         <div class="search-container">
-            <img src="../assets/search.png" class="search-icon" />
+            <img src="./assets/search.png" class="search-icon" />
             <input type="text" placeholder="Buscar operadora..." class="search"/>
         </div>
     </div>

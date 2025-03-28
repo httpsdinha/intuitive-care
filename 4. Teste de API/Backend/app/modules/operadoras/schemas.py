@@ -2,13 +2,17 @@ from pydantic import BaseModel
 
 class OperadoraResponse(BaseModel):
     Registro_ANS: str | None
-    Razão_Social: str | None
+    Razao_Social: str | None
     Nome_Fantasia: str | None
+    Modalidade: str | None  
+    Logradouro: str | None  
+    Telefone: str | None    
+    Cidade: str | None      
+    UF: str | None          
     score: float | None
     
     class Config:
         allow_population_by_field_name = True
-
 
     
 # teste python app/modules/operadoras/schemas.py
