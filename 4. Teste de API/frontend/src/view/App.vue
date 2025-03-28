@@ -25,12 +25,9 @@ export default {
 <style>
   body{
     margin: 0;
-    margin-right: 5em;
   }
   header {
     background: linear-gradient(91deg, #653740 25.84%, #985260 100%);
-
-;
     padding: 10px;
     box-shadow: black 0px 0.2px 20px;
   }

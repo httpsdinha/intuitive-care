@@ -31,3 +31,8 @@ build/
 .vscode/
 .idea/
 *.swp
+
+# Python files
+__pycache__/
+*.py[cod]
+*.csv
