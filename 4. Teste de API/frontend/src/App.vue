@@ -1,22 +1,23 @@
 <template>
+<div>
   <header>
     <HeaderSearch/>
   </header>
   <main>
-    <HelloWorld/>
+    <SearchPage/>
   </main>
-    
+</div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 import HeaderSearch from './components/HeaderSearch.vue'
+import SearchPage from './components/SearchPage.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
-    HeaderSearch
+    HeaderSearch,
+    SearchPage,
   }
 }
 </script>
@@ -24,6 +25,7 @@ export default {
 <style>
   body{
     margin: 0;
+    margin-right: 5em;
   }
   header {
     background: linear-gradient(91deg, #653740 25.84%, #985260 100%);
@@ -33,4 +35,9 @@ export default {
     box-shadow: black 0px 0.2px 20px;
   }
 
+  main {
+    padding: 1em;
+    padding-left: 10em;
+    padding-right: 10em;
+  }
 </style>
