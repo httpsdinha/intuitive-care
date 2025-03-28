@@ -27,7 +27,6 @@ BEGIN;
 --colocar esse comando no psql e verificar diretório do arquivo .csv
 \copy operadoras_ativas FROM 'C:/temp/Relatorio_cadop.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
 
---QUETY ANALITICA
 
 CREATE TABLE demonstracoes_contabeis (
     id SERIAL PRIMARY KEY,
@@ -43,20 +42,49 @@ CREATE TABLE demonstracoes_contabeis (
 
 
 -- Comando apenas para o psql
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P1T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/1T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P2t2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P2T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P3T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P3T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P4T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
-\copy demonstracoes_contabeis FROM 'C:/temp/contabeis/P4T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P1T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P1T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P2t2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P2T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P3T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P3T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P4T2024.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+\copy demonstracoes_contabeis (data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P4T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
 
 
 
 COMMIT;
 
-\copy demonstracoes_contabeis(data, registro_ans, conta_contabil, descricao, saldo_inicial, saldo_final) FROM 'C:/temp/contabeis/P1T2023.csv' WITH (FORMAT csv, DELIMITER ';', HEADER true, ENCODING 'UTF8', NULL '')
+--QUETY ANALITICA
 
-drop table demonstracoes_contabeis ;
+--10 operadoras com maiores despesas em "EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR" no último trimestre? 
+
+with ultimo_trimestre as (
+	select MAX(data) as data_maxima
+	from demonstracoes_contabeis
+)
+select 
+	o.razao_social, 
+	o.nome_fantasia, 
+	o.uf, 
+	SUM(d.saldo_final - d.saldo_inicial) as total_despesas
+
+from
+	demonstracoes_contabeis d
+join 	
+	operadoras_ativas o on d.registro_ans::VARCHAR = o.registro_ans
+cross join
+	ultimo_trimestre
+where d.descricao ilike '%EVENTOS/SINISTRO CONHECIDOS OU AVISADOS%' 
+	or d.descricao ilike '%EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSIST%'
+	and d.data >= (ultimo_trimestre.data_maxima - INTERVAL '3 months')
+group by
+	o.razao_social, o ,nome_fantasia, o.uf
+order by
+	total_despesas desc
+limit 10;
+
+--10 operadoras com maiores despesas nessa categoria no último ano? 
+
+
 
