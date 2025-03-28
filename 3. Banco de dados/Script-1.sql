@@ -75,7 +75,7 @@ join
 	operadoras_ativas o on d.registro_ans::VARCHAR = o.registro_ans
 cross join
 	ultimo_trimestre
-where d.descricao ilike '%EVENTOS/SINISTRO CONHECIDOS OU AVISADOS%' 
+where d.descricao ilike '%EVENTOS/SINISTRO CONHECIDOS OU AVISADOS DE ASSIST%' 
 	or d.descricao ilike '%EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSIST%'
 	and d.data >= (ultimo_trimestre.data_maxima - INTERVAL '3 months')
 group by
@@ -86,5 +86,28 @@ limit 10;
 
 --10 operadoras com maiores despesas nessa categoria no último ano? 
 
+with ultimo_ano as (
+	select MAX(data) as data_maxima
+	from demonstracoes_contabeis
+)
+select 
+	o.razao_social, 
+	o.nome_fantasia, 
+	o.uf, 
+	SUM(d.saldo_final - d.saldo_inicial) as total_despesas
 
+from
+	demonstracoes_contabeis d
+join 	
+	operadoras_ativas o on d.registro_ans::VARCHAR = o.registro_ans
+cross join
+	ultimo_ano
+where d.descricao ilike '%EVENTOS/SINISTRO CONHECIDOS OU AVISADOS DE ASSIST%' 
+	or d.descricao ilike '%EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSIST%'
+	and d.data >= (ultimo_ano.data_maxima - INTERVAL '1 year')
+group by
+	o.razao_social, o ,nome_fantasia, o.uf
+order by
+	total_despesas desc
+limit 10;
 
