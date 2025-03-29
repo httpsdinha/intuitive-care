@@ -1,10 +1,10 @@
 <template>
 <div>
   <header>
-    <HeaderSearch/>
+    <HeaderSearch @search="updateSearchTerm"/>
   </header>
   <main>
-    <SearchPage/>
+    <SearchPage :search-term="searchTerm"/>
   </main>
 </div>
 </template>
@@ -18,6 +18,16 @@ export default {
   components: {
     HeaderSearch,
     SearchPage,
+  },
+  data() {
+    return {
+      searchTerm: ""
+    };
+  },
+  methods: {
+    updateSearchTerm(term) {
+      this.searchTerm = term;
+    }
   }
 }
 </script>

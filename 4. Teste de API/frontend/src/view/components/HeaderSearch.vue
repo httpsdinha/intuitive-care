@@ -3,10 +3,31 @@
         <img src="./assets/logo.png" class="logo" />
         <div class="search-container">
             <img src="./assets/search.png" class="search-icon" />
-            <input type="text" placeholder="Buscar operadora..." class="search"/>
+            <input 
+                type="text" 
+                placeholder="Buscar operadora..." 
+                class="search" 
+                v-model="searchTerm" 
+                @input="onSearch"
+            />
         </div>
     </div>
 </template>
+
+<script>
+export default {
+    data() {
+        return {
+            searchTerm: ""
+        };
+    },
+    methods: {
+        onSearch() {
+            this.$emit("search", this.searchTerm);
+        }
+    }
+};
+</script>
 
 <style>
     .header-container {

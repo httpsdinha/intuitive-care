@@ -21,12 +21,21 @@
 
 <script>
 export default {
+    props: {
+        searchTerm: {
+            type: String,
+            required: true
+        }
+    },
     data() {
         return {
             selectedState: "",
             states: [],
             results: [] 
         };
+    },
+    watch: {
+        searchTerm: "filterResults" // Refiltra os resultados ao alterar o termo de busca
     },
     created() {
         this.fetchStates();
@@ -41,15 +50,23 @@ export default {
                 console.error("Erro:", error);
             }
         },
-        filterResults() {
-            const allResults = [
-                { Nome_Fantasia: "Hospital A", Modalidade: "Geral", Logradouro: "Rua A", Cidade: "São Paulo", UF: "SP", telefone: "(11) 1234-5678" },
-                { Nome_Fantasia: "Hospital B", Modalidade: "Especializado", Logradouro: "Avenida B", Cidade: "Rio de Janeiro", UF: "RJ", telefone: "(21) 9876-5432" },
-                { Nome_Fantasia: "Hospital C", Modalidade: "Clínica", Logradouro: "Praça C", Cidade: "Belo Horizonte", UF: "MG", telefone: "(31) 4567-8901" }
-            ];
-            this.results = allResults.filter(result => 
-                !this.selectedState || result.UF === this.selectedState
-            );
+        async filterResults() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/operadoras/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        termo: this.searchTerm,
+                        uf: this.selectedState,
+                        limite: 20
+                    })
+                });
+                this.results = await response.json();
+            } catch (error) {
+                console.error("Erro ao buscar resultados:", error);
+            }
         }
     }
 };
