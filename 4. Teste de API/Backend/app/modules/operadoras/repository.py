@@ -21,7 +21,9 @@ class OperadoraRepository:
     def buscar(self, termo: str, limite: int = 5, uf: str | None = None) -> list[dict]:
         resultados = []
         for _, row in self._data.iterrows():
-            if uf and row["UF"].strip().upper() != uf.strip().upper():
+            row_uf = row["UF"].strip().upper() if "UF" in row else ""
+            uf_normalized = uf.strip().upper() if uf else None
+            if uf_normalized and row_uf != uf_normalized:
                 continue
             score = fuzz.token_set_ratio(termo.lower(), " ".join(row.values).lower())
             if score > 50:
