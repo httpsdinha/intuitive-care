@@ -14,7 +14,11 @@ class OperadoraResponse(BaseModel):
     class Config:
         allow_population_by_field_name = True
 
-    
+class BuscarOperadorasRequest(BaseModel):
+    termo: str
+    limite: int = 5
+    uf: str | None = None
+
 # teste python app/modules/operadoras/schemas.py
 if __name__ == "__main__":
     exemplo = OperadoraResponse(

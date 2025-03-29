@@ -1,14 +1,15 @@
 <template>
     <div>
         <section class="filter">
-            <h2>Resultados:</h2>
+            <h2>Primeiros 20 Resultados:</h2>
             <select v-model="selectedState" @change="filterResults">
                 <option value="">UF</option>
                 <option v-for="state in states" :key="state.id" :value="state.sigla">{{ state.nome }}</option>
             </select>
         </section>
         <main>
-            <article v-for="result in results" :key="result.ans" class="result">
+            <NotFound v-if="results.length === 0" />
+            <article v-else v-for="result in results" :key="result.ans" class="result">
                 <h3>{{ result.Nome_Fantasia }}</h3>
                 <p>Modalidade: {{ result.Modalidade }}</p>
                 <p>Logradouro: {{ result.Logradouro }}</p>
@@ -20,12 +21,17 @@
 </template>
 
 <script>
+import NotFound from "./NotFound.vue";
+
 export default {
     props: {
         searchTerm: {
             type: String,
             required: true
         }
+    },
+    components: {
+        NotFound
     },
     data() {
         return {
@@ -35,7 +41,8 @@ export default {
         };
     },
     watch: {
-        searchTerm: "filterResults" // Refiltra os resultados ao alterar o termo de busca
+        searchTerm: "filterResults", 
+        selectedState: "filterResults"
     },
     created() {
         this.fetchStates();
@@ -59,13 +66,21 @@ export default {
                     },
                     body: JSON.stringify({
                         termo: this.searchTerm,
-                        uf: this.selectedState,
+                        uf: this.selectedState === "" ? null : this.selectedState, 
                         limite: 20
                     })
                 });
-                this.results = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                this.results = Array.isArray(data) ? data : []; 
+                this.$emit("update-results", this.results); 
             } catch (error) {
                 console.error("Erro ao buscar resultados:", error);
+                this.results = []; 
             }
         }
     }
@@ -113,17 +128,17 @@ export default {
     }
     
     main {
-        display: block; /* Change layout to block */
+        display: block;
     }
 
     .result {
-        width: 100%; /* Make each article occupy full width */
+        width: 100%; 
         box-sizing: border-box;
         border: 1px solid #985260;
         border-radius: 5px;
         padding: 1rem;
         background-color: #f9f9f9;
-        margin-bottom: 1rem; /* Add spacing between articles */
+        margin-bottom: 1rem; 
     }
 
     .result h3 {

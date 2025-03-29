@@ -18,9 +18,11 @@ class OperadoraRepository:
         print("Loaded columns:", data.columns) 
         return data
 
-    def buscar(self, termo: str, limite: int = 5) -> list[dict]:
+    def buscar(self, termo: str, limite: int = 5, uf: str | None = None) -> list[dict]:
         resultados = []
         for _, row in self._data.iterrows():
+            if uf and row["UF"].strip().upper() != uf.strip().upper():
+                continue
             score = fuzz.token_set_ratio(termo.lower(), " ".join(row.values).lower())
             if score > 50:
                 resultados.append({

@@ -1,11 +1,8 @@
 <template>
     <main>
         <article class="notresult">
-            <img src="../assets/no-results.png" class="no-results" />
+            <img src="./assets/no-results.png" class="no-results" />
             <h3>Nenhum resultado encontrado!</h3> 
-        </article>
-        <article class="result">
-            <h3>Resultado encontrado!</h3>
         </article>
     </main>
 </template>
