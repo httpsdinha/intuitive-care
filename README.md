@@ -1,6 +1,6 @@
-# Intuitive Care - Sistema de Busca de Operadoras
+# Busca de Operadoras
 
-Este repositório foi desenvolvido como parte de um **teste de nivelamento para estágio na Intuitive Care**.
+Este repositório foi desenvolvido como parte de um **teste de nivelamento para estágio**.
 
 ## Estrutura do Projeto
 
