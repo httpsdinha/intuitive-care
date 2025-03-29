@@ -1,89 +1,40 @@
 <template>
-    <div>
-        <section class="filter">
-            <h2>Primeiros 20 Resultados:</h2>
-            <select v-model="selectedState" @change="filterResults">
-                <option value="">UF</option>
-                <option v-for="state in states" :key="state.id" :value="state.sigla">{{ state.nome }}</option>
-            </select>
-        </section>
-        <main>
-            <NotFound v-if="results.length === 0" />
-            <article v-else v-for="result in results" :key="result.ans" class="result">
-                <h3>{{ result.Nome_Fantasia }}</h3>
-                <p>Modalidade: {{ result.Modalidade }}</p>
-                <p>Logradouro: {{ result.Logradouro }}</p>
-                <p>Telefone: {{ result.telefone }}</p>
-                <p>{{ result.Cidade }} - {{ result.UF }}</p>
-            </article>
-        </main>
-    </div>
+  <div>
+    <section class="filter">
+      <h2>Primeiros 20 Resultados:</h2>
+      <select v-model="selectedState">
+        <option value="">UF</option>
+        <option v-for="state in states" :key="state.id" :value="state.sigla">{{ state.nome }}</option>
+      </select>
+    </section>
+    <main>
+      <NotFound v-if="results.length === 0" />
+      <article v-else v-for="result in results" :key="result.ans" class="result">
+        <h3>{{ result.Nome_Fantasia }}</h3>
+        <p>Modalidade: {{ result.Modalidade }}</p>
+        <p>Logradouro: {{ result.Logradouro }}</p>
+        <p>Telefone: {{ result.telefone }}</p>
+        <p>{{ result.Cidade }} - {{ result.UF }}</p>
+      </article>
+    </main>
+  </div>
 </template>
 
 <script>
 import NotFound from "./NotFound.vue";
+import useSearch from "../../viewmodel/useSearch";
 
 export default {
-    props: {
-        searchTerm: {
-            type: String,
-            required: true
-        }
-    },
-    components: {
-        NotFound
-    },
-    data() {
-        return {
-            selectedState: "",
-            states: [],
-            results: [] 
-        };
-    },
-    watch: {
-        searchTerm: "filterResults", 
-        selectedState: "filterResults"
-    },
-    created() {
-        this.fetchStates();
-        this.filterResults(); 
-    },
-    methods: {
-        async fetchStates() {
-            try {
-                const response = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados");
-                this.states = await response.json();
-            } catch (error) {
-                console.error("Erro:", error);
-            }
-        },
-        async filterResults() {
-            try {
-                const response = await fetch("http://127.0.0.1:8000/operadoras/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        termo: this.searchTerm,
-                        uf: this.selectedState === "" ? null : this.selectedState, 
-                        limite: 20
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro na API: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                this.results = Array.isArray(data) ? data : []; 
-                this.$emit("update-results", this.results); 
-            } catch (error) {
-                console.error("Erro ao buscar resultados:", error);
-                this.results = []; 
-            }
-        }
+  props: {
+    searchTerm: {
+      type: String,
+      required: true
     }
+  },
+  components: {
+    NotFound
+  },
+  mixins: [useSearch]
 };
 </script>
 

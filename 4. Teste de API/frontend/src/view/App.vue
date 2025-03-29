@@ -1,35 +1,27 @@
 <template>
-<div>
-  <header>
-    <HeaderSearch @search="updateSearchTerm"/>
-  </header>
-  <main>
-    <SearchPage :search-term="searchTerm"/>
-  </main>
-</div>
+  <div>
+    <header>
+      <HeaderSearch @search="searchTerm = $event" />
+    </header>
+    <main>
+      <SearchPage :search-term="searchTerm" />
+    </main>
+  </div>
 </template>
 
 <script>
-import HeaderSearch from './components/HeaderSearch.vue'
-import SearchPage from './components/SearchPage.vue'
+import HeaderSearch from './components/HeaderSearch.vue';
+import SearchPage from './components/SearchPage.vue';
+import useSearch from '../viewmodel/useSearch';
 
 export default {
   name: 'App',
   components: {
     HeaderSearch,
-    SearchPage,
+    SearchPage
   },
-  data() {
-    return {
-      searchTerm: ""
-    };
-  },
-  methods: {
-    updateSearchTerm(term) {
-      this.searchTerm = term;
-    }
-  }
-}
+  mixins: [useSearch]
+};
 </script>
 
 <style>
